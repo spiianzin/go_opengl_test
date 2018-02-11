@@ -1,3 +1,5 @@
+The tutorial: https://kylewbanks.com/blog/tutorial-opengl-with-golang-part-1-hello-opengl
+ 
 Hi, this is my attempt to create render using Go. 
 I've never written any program with Go, so, let's get it!
 
