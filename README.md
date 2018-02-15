@@ -26,6 +26,13 @@ go run simple_triangle.go
 ```
 Or just run _run.bat_
 
+```
+run.bat 1 - run simple_triangle.go
+run.bat 2 - run square.go
+run.bat 3 - run cells.go
+
+```
+
 You did it!
 
 
