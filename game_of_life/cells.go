@@ -5,6 +5,7 @@ import (
     "runtime"
     "strings"
     "fmt"
+	"time"
 
     "github.com/go-gl/gl/v4.1-core/gl" 
     "github.com/go-gl/glfw/v3.2/glfw"
@@ -98,21 +99,22 @@ func newCell(x int, y int) *cell {
 }
 
 func draw(cells [][]*cell, window *glfw.Window, program uint32) {
-    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    gl.UseProgram(program)
+	for x := range cells {
+		for _, c := range cells[x] {
+			gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+			gl.UseProgram(program)
 
-	// for x := range cells {
-		// for _, c := range cells[x] {
-			// c.draw()
-		// }
-	// }
+			c.draw()
+			
+			glfw.PollEvents()
+			window.SwapBuffers()
+			
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
 	
-	cells[3][5].draw()
-	cells[2][5].draw()
-	cells[4][4].draw()
-    
-    glfw.PollEvents()
-    window.SwapBuffers()
+	//Will close the window when it will reach end of the loop
+	window.SetShouldClose(true);
 }
 
 func (c *cell) draw() {
