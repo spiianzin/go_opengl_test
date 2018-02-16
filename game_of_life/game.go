@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	rows = 10
-	columns = 10
+	rows = 50
+	columns = 50
 
     width  = 500
     height = 500
@@ -163,7 +163,7 @@ func draw(cells [][]*cell, window *glfw.Window, program uint32) {
 	glfw.PollEvents()
 	window.SwapBuffers()
 	
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	
 	var aliveCells int
 	for i := 0; i < rows; i++ {

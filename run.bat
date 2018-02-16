@@ -1,3 +1,5 @@
+@echo off
+
 set filename="game.go"
 set arg=%1 
 
