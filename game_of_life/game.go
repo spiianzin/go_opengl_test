@@ -51,7 +51,9 @@ type cell struct {
 	
 	x int
 	y int
+	
 	alive int
+	aliveNextGen int
 }
 
 func makeCells() [][]*cell {
@@ -66,37 +68,37 @@ func makeCells() [][]*cell {
 	return cells
 }
 
-func getAliveNeighboars(c *cell, cells [][]*cell) int {
+func countAliveNeighboars(c *cell, cells [][]*cell) int {
 	var aliveCount int
-	var x_m = c.x - 1
-	if (x_m < 0) {
-		x_m = 0
-	}
-
-	var y_m = c.y - 1
-	if (y_m < 0) {
-		y_m = 0
-	}
-
-	var x_p = c.x + 1
-	if (x_p > columns) {
-		x_p = columns
-	}
-
-	var y_p = c.y + 1
-	if (y_p > rows) {
-		y_p = rows
-	}
-	log.Println("x=", x_m, "-", x_p, y_m, "-",y_p)
-	for i := x_m; i < x_p; i++ {
-		for j := y_m; j < y_p; j++ {
-				if (cells[i][j].alive == 1) {
-					aliveCount += cells[i][j].alive
-					log.Println("ALIVE ",i,j)
-			}
+	var add = func (x int, y int) {
+		if (x < 0) {
+			x = rows - 1
+		}
+		if (x >= rows) {
+			x = 0
+		}
+		if (y < 0) {
+			y = columns - 1
+		}
+		
+		if (y >= columns) {
+			y = 0
+		}
+		
+		if (cells[x][y].alive == 1) {
+			aliveCount = aliveCount + cells[x][y].alive
 		}
 	}
-
+	
+	add(c.x - 1, c.y - 1)
+	add(c.x - 1, c.y)
+	add(c.x - 1, c.y + 1)
+	add(c.x, c.y + 1)
+	add(c.x, c.y - 1)
+	add(c.x + 1, c.y - 1)
+	add(c.x + 1, c.y)
+	add(c.x + 1, c.y + 1)
+	
 	return aliveCount
 }
 
@@ -134,41 +136,82 @@ func newCell(x int, y int) *cell {
 }
 
 func draw(cells [][]*cell, window *glfw.Window, program uint32) {
-	for x := range cells {
-		for _, c := range cells[x] {
-			gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-			gl.UseProgram(program)
-
-			c.draw()
-			cells[2][3].draw()
-			cells[3][3].draw()
-			cells[4][8].draw()
-			cells[5][5].draw()
-
-			alive := getAliveNeighboars(c, cells)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.UseProgram(program)
+	
+	for i := 0; i < rows; i++ {
+		for j := 0; j < columns; j++ {
 			
-			if (alive > 0) {
-				log.Println("alive =", alive, "cell =", c)
-				time.Sleep(1000 * time.Millisecond)
+			var c = cells[i][j]
+			if (c.alive == 1) {
+				c.draw()
 			}
-
-			glfw.PollEvents()
-			window.SwapBuffers()
 			
-			time.Sleep(500 * time.Millisecond)
+			var alive = countAliveNeighboars(c, cells)
+			
+			c.aliveNextGen = 0
+			
+			if (c.alive == 1 && (alive == 2 || alive == 3)) {
+				c.aliveNextGen = 1
+			}
+			if (c.alive == 0 && alive == 3) {
+				c.aliveNextGen = 1
+			}
 		}
 	}
-
 	
-
+	glfw.PollEvents()
+	window.SwapBuffers()
+	
+	time.Sleep(500 * time.Millisecond)
+	
+	var aliveCells int
+	for i := 0; i < rows; i++ {
+		for j := 0; j < columns; j++ {
+			cells[i][j].swapGeneration()
+			aliveCells = aliveCells + cells[i][j].alive
+		}
+	}
+	
+	if (aliveCells == 0) {
+		log.Println("End of the game")
+		time.Sleep(5 * time.Second)
+		window.SetShouldClose(true)
+	}
 	
 	//Will close the window when it will reach end of the loop
-	window.SetShouldClose(true);
+	// 
+}
+
+func main() {
+    runtime.LockOSThread()
+
+    window := initGlfw()
+    defer glfw.Terminate()
+    
+    program := initOpenGL()
+
+    cells := makeCells()
+
+    cells[2][2].alive = 1
+	cells[3][2].alive = 1
+	cells[4][2].alive = 1
+	cells[4][3].alive = 1
+	cells[4][4].alive = 1
+	cells[3][5].alive = 1
+
+    for !window.ShouldClose() {
+        draw(cells, window, program)
+    }
 }
 
 func (c *cell) draw() {
     gl.BindVertexArray(c.drawable)
     gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square) / 3))
+}
+
+func (c *cell) swapGeneration() {
+	c.alive = c.aliveNextGen
 }
 
 
@@ -210,26 +253,6 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
     }
     
     return shader, nil
-}
-
-func main() {
-    runtime.LockOSThread()
-
-    window := initGlfw()
-    defer glfw.Terminate()
-    
-    program := initOpenGL()
-
-    cells := makeCells()
-
-    cells[2][3].alive = 1
-	cells[3][3].alive = 1
-	cells[4][8].alive = 1
-	cells[5][5].alive = 1
-
-    for !window.ShouldClose() {
-        draw(cells, window, program)
-    }
 }
 
 // initGlfw initializes glfw and returns a Window to use.
