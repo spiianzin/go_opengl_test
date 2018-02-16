@@ -197,8 +197,7 @@ func main() {
 	cells[3][2].alive = 1
 	cells[4][2].alive = 1
 	cells[4][3].alive = 1
-	cells[4][4].alive = 1
-	cells[3][5].alive = 1
+	cells[3][4].alive = 1
 
     for !window.ShouldClose() {
         draw(cells, window, program)
